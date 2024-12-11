@@ -92,6 +92,10 @@ Our p-value is 0.0, which is under the threshold 0.05, so we reject the Null Hyp
 
 ## Hypothesis Testing
 
+Null Hypothesis: High-ban-rate champions do not have a statistically significantly higher mean win rate than the average champion. <br>
+Alternative Hypothesis: High-ban-rate champions have a statistically significantly higher mean win rate than the average champion. <br>
+Test Statistic: Difference in Means<br>
+P-Value: 0.0439<br>
 
 
 
