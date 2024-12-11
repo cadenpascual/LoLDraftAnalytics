@@ -43,13 +43,34 @@ Other important columns include
 
 #### Playoff vs Non Playoff Games
 
+<iframe
+  src="assets/playoff_chart.html"
+  width="800"
+  height="600"
+  frameborder="0"
+></iframe>
+
 The above plot is the distribution of non-playoff vs playoff games. There are much more "non-playoff" games since the playoffs are a specific subset of games, only for the best teams, to play against each other for the final championship. We can group by "playoff" and "non-playoff" games in our analysis to see if it may be easier or harder to guess the outcome of a game based off if it is a playoff game or not.
 
 #### Games per Patch
 
+<iframe
+  src="assets/patch_chart.html"
+  width="800"
+  height="600"
+  frameborder="0"
+></iframe>
+
 Above is the distribution of games played for every patch (game update). There are less games played in certain patches since the time that certain patches were up may have been less than others. We can verify this by plotting the amount of games played per month. There are 9 games that aren't assigned a patch. We will figure out what patch they are in and the reason later.
 
 #### Games per Month
+
+<iframe
+  src="assets/month_chart.html"
+  width="800"
+  height="600"
+  frameborder="0"
+></iframe>
 
 The distribution of games played per month has a very similar shape to the patch notes graph. We can assume many things, maybe there are big tournaments around Feb-March and June-August.
 
@@ -57,14 +78,38 @@ The distribution of games played per month has a very similar shape to the patch
 ### Bivariate Analysis
 
 #### Times picked first vs Win Percentage (top 10 champions)
+
+<iframe
+  src="assets/first_pick_chart.html"
+  width="800"
+  height="600"
+  frameborder="0"
+></iframe>
+
 There is a slightly positive correlation between a "popular" first pick and winning, but even the most popular first pick, Jinx, only has a win pctg of 51%, which isn't that high above average. Let's take a look at the chart with all possible first picks (min 25 times picked, since the data for such champions is always skewed).
 
 #### Times picked first vs Win Percentage (all champions)
+
+<iframe
+  src="assets/all_first_pick_scatter.html"
+  width="800"
+  height="600"
+  frameborder="0"
+></iframe>
+
 There isn't a strong visible correlation between win % and the how popular the first pick is, we have to look futher into this, maybe some characters are stronger during some patches, and after they get nerfed (the game devs lower their stats or make their abilities worse to make them fairer), their win percentages drop. 
 
 
 ### Interesting Aggregates
+
 With the previous Bivariate examples in mind, let's see what an aggregation of ALL champions, regardless of when they're picked, and their win rates.
+
+<iframe
+  src="assets/win_rate_scatter.html"
+  width="800"
+  height="600"
+  frameborder="0"
+></iframe>
 
 Most champions win rates hover around the 50% line. This is what we should be expecting, since we haven't looked at any of the banned statistics, we can expect that all the strongest champions are being banned (meaning they can't be picked in matches).
 
@@ -80,6 +125,13 @@ I don't believe there is a column in the dataset I'm using that is NMAR. There i
 ### Missingness Dependency
 
 "Each 'gameid' corresponds to up to 12 rows – one for each of the 5 players on both teams and 2 containing summary data for the two teams." The summary data for both teams usually contains the champions picked for the whole team, although some of the picks are missing in these rows. Some competitive 'leagues' may not be as mainstream as others, let's see if this data is missing dependent on the league.
+
+<iframe
+  src="assets/picks_missing_graph.html"
+  width="800"
+  height="600"
+  frameborder="0"
+></iframe>
 
 As we can see, 6/50 of the leagues have all their draft data missing. Let's see if this is statistically possible, or if the draft data missing is actually dependent on the league with permutations. 
 
@@ -97,7 +149,14 @@ Alternative Hypothesis: High-ban-rate champions have a statistically significant
 Test Statistic: Difference in Means<br>
 P-Value: 0.0439<br>
 
+<iframe
+  src="assets/ban_vs_win_scatter.html"
+  width="800"
+  height="600"
+  frameborder="0"
+></iframe>
 
+Now that we have all the ban rates, lets categorize our champions by how high their win rates are.
 
 ---
 
