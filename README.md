@@ -136,7 +136,8 @@ I don't believe there is a column in the dataset I'm using that is NMAR. There i
 As we can see, 6/50 of the leagues have all their draft data missing. Let's see if this is statistically possible, or if the draft data missing is actually dependent on the league with permutations. 
 
 Null Hypothesis: The missingness of pick_missing is independent of the column 'league'. <br>
-Alternative Hypothesis: The missingness of pick_missing depends on the column 'league'.
+Alternative Hypothesis: The missingness of pick_missing depends on the column 'league'. <br>
+
 
 
 Our p-value is 0.0, which is under the threshold 0.05, so we reject the Null Hypothesis, meaning that pick_missing depends on the column "league". Let's check another column that pick_missing ISN'T dependent on, such as 'side' (the current game in the series).
@@ -144,10 +145,10 @@ Our p-value is 0.0, which is under the threshold 0.05, so we reject the Null Hyp
 
 ## Hypothesis Testing
 
-Null Hypothesis: High-ban-rate champions do not have a statistically significantly higher mean win rate than the average champion. <br>
-Alternative Hypothesis: High-ban-rate champions have a statistically significantly higher mean win rate than the average champion. <br>
-Test Statistic: Difference in Means<br>
-P-Value: 0.0439<br>
+**Null Hypothesis**: High-ban-rate champions do not have a statistically significantly higher mean win rate than the average champion. <br>
+**Alternative Hypothesis**: High-ban-rate champions have a statistically significantly higher mean win rate than the average champion. <br>
+**Test Statistic**: Difference in Means<br>
+***P-Value***: 0.0439<br>
 
 <iframe
   src="assets/ban_vs_win_scatter.html"
@@ -156,11 +157,31 @@ P-Value: 0.0439<br>
   frameborder="0"
 ></iframe>
 
-Now that we have all the ban rates, lets categorize our champions by how high their win rates are.
+Now that we have all the ban rates, lets categorize our champions by how high their ban rates are.
+
+<iframe
+  src="assets/ban_freq_chart.html"
+  width="800"
+  height="600"
+  frameborder="0"
+></iframe>
+
+This is the average win rate of characters that have a 'high' ban rate (above the median) vs a 'low' ban rate (below the median). The difference in means ends up being around 0.023, which is a signifigant enough difference to give us a p_value of 0.0439 under permutation testing. Our p_value is under the significance level of 0.05, so we are able to Reject the null hypothesis, leading us to the conclusion that High-ban-rate champions have a statistically significantly higher win rate according to our data.
 
 ---
 
 ## Framing a Prediction Problem
+
+We're going to be using the ban/pick rate data that we made to predict the outcome of a game (win or loss) through Classification (1 = win, 0 = loss). The only data we want to use is before the match starts, but after the draft. Therefore, the feature we'll be using will only be related to the draft. 
+
+The columns we used from the original data + new ones that I created were
+- 'gameid': a unique ID for every match.
+- 'result': 1 if your team wins, 0 if your team loses.
+- 'pick_rate': the percentage of matches that the champion was picked to play (0-1).
+- 'ban_rate': the percentage of matches that the champion was banned in (0-1).
+- 'win_rate': the percentage of matches that a champion has won (0-1).
+- 'patch': the current version of the game (changes when game is updated).
+- 'position': the position that the current player is playing (top, bot, jng, mid, sup).
 
 
 
@@ -168,13 +189,35 @@ Now that we have all the ban rates, lets categorize our champions by how high th
 
 ## Baseline Model
 
+#### Predicting the result of the Match using Ban/Pick Rates
+My baseline model is very simple, use the ban rates and pick rates of each champion and the original result data to Classify which team should win and which should lose. Both of these features are quantitative, on a scale from 0-1, with 0 being "never" picked/banned and 1 being "always" picked/banned. The ban and pick rate data wasn't in the original data set, I had to create it myself. Here's the process I had to go through to create this data.  
 
+The 'pick_rate' was easier to find, I had to take the value counts of all champions in the 'champion' column and divide the counts by the total number of games played.
+For the 'ban_rate', there was no 'banned_champion' column that had the specific champion that each player banned in the match, instead there were 5 different ban columns for the whole team. For 'ban_rate' we also have to account for duplicate bans from both sides. A champion can't be picked to play in game by multiple players, but both teams can ban the same champion in a single match, meaning that if we just take the value counts of all the ban columns, we might be overestimating the ban rates of some champions. If in all games, both teams ban the same champion, calculating it that way would give us a ban rate of 200%, which is obviously impossible. I had to find a way to get around this by grouping all the bans in each game, and taking all the unique values, getting rid of duplicates. 
+
+Using these two features under a Standard Scalar, the accuracy score of this model ended up being around 51.86%, which is just a little higher than guessing at random. This baseline model isn't very good, but I didn't expect too much out of it with such little features.
 
 ---
 
 ## Final Model
+For my final model, I looked into adding more features, such as adding the 'win_rates' (quantitative data) of the champions in addition to the ban and pick rates. This raised the accuracy to around 52.57%, which isn't very significant. I also added "position", which is a nominal feature, to see if your role on the team played any significance in whether you won or not. It didn't do much, raising the accuracy to 52.60%. 
 
+Then I had an idea. I thought about filtering the data I already had by the current "patch" (an ordinal feature) or update. Whenever the game gets updated, the developers "buff" (increase stats) or "nerf" (decrease stats) certain champions that are too strong or not powerful enough. It might be harder to set a prediction if we're using data from the whole year, since a characters usage rate changes over each patch. If we filter our ban and pick rates by the current patch, we might be able to more accurately predict the outcome of matches. And I did just that.
+
+I created a whole new data set, finding the win, ban, and pick rates for all champions in each individual patch, and then merging the original data frame with the new statistics. Using these new statistics (updated 'ban rate' and 'pick rate' based on patch), as well as the two other features I added after the baseline model ('win rate based on patch', 'position'), I ended up with a final accuracy score of 55.65%, which is signifigant enough to say that my Final model improved from the original Baseline model. 
 
 ___
 
 ## Fairness Analysis
+
+This section checks if our model performs worse for a certain group of individuals.
+The two groups we'll be looking at are ones we formed in our Hypothesis Testing. People using 'high-ban-rate' champions and people who aren't
+
+- **Null Hypothesis**: Our model is fair. Its precision for high and low ban rate champions are roughly the same, and any differences are due to random chance. <br>
+- **Alternative Hypothesis**: Our model is unfair. Its precision for low ban rate champions is higher than its precision for high ban rate champions. 
+- **Test Statistic**: Accuracy
+- **P Value**: 0.0
+
+Our p value falls below the signifigance level of 0.05, meaning that our models precision is unfair, and the precision for low ban rate champions is higher than the precision for high ban rate champions.
+
+
